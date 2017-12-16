@@ -1,31 +1,35 @@
 import isEqual from './isEqual';
 
+const extendNewAction = (newAction, key, newActionData) =>
+  Object.assign(
+    Array.isArray(newAction) ? [] : {},
+    newAction,
+    { [key]: newActionData },
+  );
+
 const addIdToActionData = (action, data, id) => {
+  if (!action || !data || !id) return action;
+
   let found = false;
 
   return Object.keys(action)
     .reduce((newAction, key) => {
       const actionData = action[key];
-      let newActionData;
+      if (found || !actionData || typeof actionData !== 'object') return extendNewAction(newAction, key, actionData);
 
-      if (!found && isEqual(actionData, data)) {
+      let newActionData;
+      if (isEqual(actionData, data)) {
         found = true;
 
         newActionData = {
           id,
           ...data,
         };
-      } else if (!found && actionData != null && typeof actionData === 'object') {
+      } else {
         newActionData = addIdToActionData(actionData, data, id);
       }
 
-      if (Array.isArray(newAction)) {
-        return newAction.concat(newActionData || actionData);
-      }
-      return {
-        ...newAction,
-        [key]: newActionData || actionData,
-      };
+      return extendNewAction(newAction, key, newActionData);
     }, Array.isArray(action) ? [] : {});
 };
 
