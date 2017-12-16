@@ -1,0 +1,28 @@
+{
+  "name": "firebase-redux-middleware",
+  "version": "0.1.0",
+  "description": "Firebase Redux Middleware",
+  "main": "lib/firebase-redux-middleware.js",
+  "scripts": {
+    "build": "webpack",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "firebase",
+    "redux",
+    "middleware"
+  ],
+  "author": "sarics",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-eslint": "^8.0.3",
+    "babel-loader": "^7.1.2",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "eslint": "^4.13.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.8.0",
+    "webpack": "^3.10.0"
+  }
+}
