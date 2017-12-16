@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -27,5 +28,14 @@ module.exports = {
         },
       },
     ],
+  },
+
+  plugins: [
+    new webpack.optimize.ModuleConcatenationPlugin(),
+  ],
+
+  stats: {
+    maxModules: Infinity,
+    optimizationBailout: true,
   },
 };

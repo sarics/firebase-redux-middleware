@@ -1,112 +1,19 @@
+import isEqual from './utils/isEqual';
+import getDeepData from './utils/getDeepData';
+import getDifference from './utils/getDifference';
+import snapshotToArray from './utils/snapshotToArray';
+import addIdToActionData from './utils/addIdToActionData';
+
+
 const DB_ACTION_KEY = '__DB_ACTION__';
 
 const logError = (...args) => {
   console.error('[Firebase middleware]', ...args); // eslint-disable-line no-console
 };
 
-const isEqual = (obj1, obj2) => {
-  if (
-    obj1 == null ||
-    obj2 == null ||
-    typeof obj1 !== 'object' ||
-    typeof obj2 !== 'object'
-  ) return obj1 === obj2;
 
-  if (Array.isArray(obj1) !== Array.isArray(obj2)) return false;
-
-  return Object.keys(obj1).reduce((isEq, key) => isEq && isEqual(obj1[key], obj2[key]), true);
-};
-
-const getDeepData = (data, path = []) => {
-  if (data == null || typeof data !== 'object' || !path.length) return data;
-
-  let key = path.slice(0, 1)[0];
-  if (/^\d+$/.test(key)) key = parseInt(key, 10);
-
-  return getDeepData(data[key], path.slice(1));
-};
-
-const parseSnapshot = (snapshot) => {
-  const list = [];
-
-  snapshot.forEach((childSnapshot) => {
-    list.push({
-      id: childSnapshot.key,
-      ...childSnapshot.val(),
-    });
-  });
-
-  return list;
-};
-
-const getDifference = (oldData, newData) =>
-  newData.reduce((changes, item) => {
-    const newChanges = Object.assign({}, changes);
-
-    const oldItem = oldData.find(({ id }) => id === item.id);
-    const newItem = Object.assign({}, item);
-
-    if (oldItem) {
-      newChanges.removed = newChanges.removed.filter(({ id }) => id !== oldItem.id);
-
-      if (!isEqual(oldItem, newItem)) newChanges.edited = newChanges.edited.concat([newItem]);
-    } else {
-      newChanges.added = newChanges.added.concat([newItem]);
-    }
-
-    return newChanges;
-  }, {
-    added: [],
-    edited: [],
-    removed: oldData.slice(),
-  });
-
-const addIdToActionData = (action, data, id) => {
-  let found = false;
-
-  if (Array.isArray(action)) {
-    return action.map((actionData) => {
-      if (!found && isEqual(actionData, data)) {
-        found = true;
-
-        return {
-          id,
-          ...data,
-        };
-      }
-      if (!found && actionData != null && typeof actionData === 'object') {
-        return addIdToActionData(actionData, data, id);
-      }
-      return actionData;
-    });
-  }
-
-  return Object.keys(action).reduce((newAction, key) => {
-    if (!found && isEqual(action[key], data)) {
-      found = true;
-
-      return {
-        ...newAction,
-        [key]: {
-          id,
-          ...data,
-        },
-      };
-    }
-    if (!found && action[key] != null && typeof action[key] === 'object') {
-      return {
-        ...newAction,
-        [key]: addIdToActionData(action[key], data, id),
-      };
-    }
-    return {
-      ...newAction,
-      [key]: action[key],
-    };
-  }, {});
-};
-
-export default (config, pathOptsArr) => {
+// eslint-disable-next-line import/prefer-default-export
+export const createFbMiddleware = (config, pathOptsArr) => {
   const {
     firebase,
     reducer,
@@ -134,7 +41,7 @@ export default (config, pathOptsArr) => {
   const getStateForPath = (state, { storePath }) =>
     getDeepData(state, storePath.split('/'));
 
-  const findItemByIdForPath = (state, id, pathOpts) =>
+  const findItemByIdForPath = (state, pathOpts, id) =>
     getStateForPath(state, pathOpts).find((item) => item.id === id);
 
   const dbAction = (action, data) => ({
@@ -156,22 +63,24 @@ export default (config, pathOptsArr) => {
       let data;
 
       if (Array.isArray(initState)) {
-        data = parseSnapshot(snapshot);
+        data = snapshotToArray(snapshot);
         if (data.length) store.dispatch(dbAction(actions.set, data));
 
+        const findItem = (ss) => findItemByIdForPath(store.getState(), pathOpts, ss.key);
+
         const onChildAdded = (ss) => {
-          const item = findItemByIdForPath(store.getState(), ss.key, pathOpts);
+          const item = findItem(ss);
           if (!item) store.dispatch(dbAction(actions.add, { id: ss.key, ...ss.val() }));
         };
 
         const onChildChanged = (ss) => {
-          const item = findItemByIdForPath(store.getState(), ss.key, pathOpts);
+          const item = findItem(ss);
           const newItem = { id: ss.key, ...ss.val() };
           if (!isEqual(item, newItem)) store.dispatch(dbAction(actions.edit, newItem));
         };
 
         const onChildRemoved = (ss) => {
-          const item = findItemByIdForPath(store.getState(), ss.key, pathOpts);
+          const item = findItem(ss);
           if (item) store.dispatch(dbAction(actions.remove, { id: ss.key }));
         };
 
