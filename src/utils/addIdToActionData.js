@@ -3,51 +3,30 @@ import isEqual from './isEqual';
 const addIdToActionData = (action, data, id) => {
   let found = false;
 
-  const shouldCheck = (actionData) =>
-    !found && actionData != null && typeof actionData === 'object';
+  return Object.keys(action)
+    .reduce((newAction, key) => {
+      const actionData = action[key];
+      let newActionData;
 
-  if (Array.isArray(action)) {
-    return action.map((actionData) => {
       if (!found && isEqual(actionData, data)) {
         found = true;
 
-        return {
+        newActionData = {
           id,
           ...data,
         };
+      } else if (!found && actionData != null && typeof actionData === 'object') {
+        newActionData = addIdToActionData(actionData, data, id);
       }
-      if (shouldCheck(actionData)) {
-        return addIdToActionData(actionData, data, id);
+
+      if (Array.isArray(newAction)) {
+        return newAction.concat(newActionData || actionData);
       }
-      return actionData;
-    });
-  }
-
-  return Object.keys(action).reduce((newAction, key) => {
-    const actionData = action[key];
-
-    if (!found && isEqual(actionData, data)) {
-      found = true;
-
       return {
         ...newAction,
-        [key]: {
-          id,
-          ...data,
-        },
+        [key]: newActionData || actionData,
       };
-    }
-    if (shouldCheck(actionData)) {
-      return {
-        ...newAction,
-        [key]: addIdToActionData(actionData, data, id),
-      };
-    }
-    return {
-      ...newAction,
-      [key]: actionData,
-    };
-  }, {});
+    }, Array.isArray(action) ? [] : {});
 };
 
 export default addIdToActionData;
