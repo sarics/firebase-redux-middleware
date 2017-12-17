@@ -7,6 +7,50 @@ const data = {
   bool: true,
 };
 
+test('should return undefined if called without arguments', () => {
+  const actual = addIdToActionData();
+
+  expect(actual).toBeUndefined();
+});
+
+test('should return original action if called without data', () => {
+  const action = {
+    type: 'TEST_ACTION',
+    testData: data,
+  };
+
+  const actual = addIdToActionData(action, undefined, id);
+  const expected = action;
+
+  expect(actual).toEqual(expected);
+});
+
+test('should return original action if called without id', () => {
+  const action = {
+    type: 'TEST_ACTION',
+    testData: data,
+  };
+
+  const actual = addIdToActionData(action, data, undefined);
+  const expected = action;
+
+  expect(actual).toEqual(expected);
+});
+
+test('should return original action data if data not found', () => {
+  const action = {
+    type: 'TEST_ACTION',
+    testData: {
+      foo: 'baz',
+    },
+  };
+
+  const actual = addIdToActionData(action, data, id);
+  const expected = action;
+
+  expect(actual).toEqual(expected);
+});
+
 test('should add id to data in action data', () => {
   const action = {
     type: 'TEST_ACTION',
@@ -117,20 +161,6 @@ test('should add id to deep data in action data', () => {
       },
     ],
   };
-
-  expect(actual).toEqual(expected);
-});
-
-test('should return original action data if data not found', () => {
-  const action = {
-    type: 'TEST_ACTION',
-    testData: {
-      foo: 'baz',
-    },
-  };
-
-  const actual = addIdToActionData(action, data, id);
-  const expected = action;
 
   expect(actual).toEqual(expected);
 });
