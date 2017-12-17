@@ -1,11 +1,21 @@
 import isEqual from './isEqual';
 
-export default (oldData, newData) =>
-  newData.reduce((changes, item) => {
-    const newChanges = Object.assign({}, changes);
+const childrenHaveId = (arr) => !arr.find((item) => !item.id);
+
+export default (oldData, newData) => {
+  if (!Array.isArray(oldData) || !Array.isArray(newData)) {
+    throw new Error('Difference checking only works with arrays');
+  }
+
+  if (!childrenHaveId(oldData) || !childrenHaveId(newData)) {
+    throw new Error('Difference checking only works with arrays of objects with id');
+  }
+
+  return newData.reduce((changes, item) => {
+    const newChanges = { ...changes };
 
     const oldItem = oldData.find(({ id }) => id === item.id);
-    const newItem = Object.assign({}, item);
+    const newItem = { ...item };
 
     if (oldItem) {
       newChanges.removed = newChanges.removed.filter(({ id }) => id !== oldItem.id);
@@ -21,3 +31,4 @@ export default (oldData, newData) =>
     edited: [],
     removed: oldData.slice(),
   });
+};
