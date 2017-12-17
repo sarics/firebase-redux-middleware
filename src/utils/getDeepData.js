@@ -1,8 +1,8 @@
 const getDeepData = (data, path = []) => {
-  if (data == null || typeof data !== 'object' || !path.length) return data;
+  if (!path.length) return data;
+  if (data === null || typeof data !== 'object') return undefined;
 
-  let key = path.slice(0, 1)[0];
-  if (/^\d+$/.test(key)) key = parseInt(key, 10);
+  const key = path.slice(0, 1)[0];
 
   return getDeepData(data[key], path.slice(1));
 };
