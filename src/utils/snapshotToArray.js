@@ -1,4 +1,6 @@
 export default (snapshot) => {
+  if (!snapshot || !snapshot.forEach) return [];
+
   const list = [];
 
   snapshot.forEach((childSnapshot) => {
