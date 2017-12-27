@@ -7,13 +7,6 @@ test('should throw error if not called with arrays', () => {
   expect(callWithObjects).toThrowError('Difference checking only works with arrays');
 });
 
-test('should throw error if called with arrays of objects without id', () => {
-  function callWithObjects() {
-    getDifference([{ foo: 'bar' }], [{ foo: 'baz' }]);
-  }
-  expect(callWithObjects).toThrowError('Difference checking only works with arrays of objects with id');
-});
-
 test('should find differences', () => {
   const oldData = [
     {

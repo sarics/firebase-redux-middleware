@@ -1,14 +1,8 @@
 import isEqual from './isEqual';
 
-const childrenHaveId = (arr) => !arr.find((item) => !item.id);
-
 export default (oldData, newData) => {
   if (!Array.isArray(oldData) || !Array.isArray(newData)) {
     throw new Error('Difference checking only works with arrays');
-  }
-
-  if (!childrenHaveId(oldData) || !childrenHaveId(newData)) {
-    throw new Error('Difference checking only works with arrays of objects with id');
   }
 
   return newData.reduce((changes, item) => {
